@@ -49,14 +49,15 @@ The following **additional** features are implemented:
 
 Here's a walkthrough of implemented user stories:
 
-<img src='http://i.imgur.com/IRSbfPc.gif' title='Video Walkthrough' width='' alt='Video Walkthrough' />
-See: http://imgur.com/a/7a7Zk
+<img src='http://i.imgur.com/7EvpVKG.gif' title='Video Walkthrough' width='' alt='Video Walkthrough' />
+See: http://imgur.com/a/UY6AC
 
 
-<img src='http://i.imgur.com/fb76GIe.gif' title='Video Walkthrough' width='' alt='Video Walkthrough' />
-http://imgur.com/a/NZi9b
+<img src='http://i.imgur.com/mktT1eL.gif' title='Video Walkthrough' width='' alt='Video Walkthrough' />
+See: http://imgur.com/a/Temor
 
 GIF created with [LiceCap](http://www.cockos.com/licecap/).
+Resized to fit GIT restrictions with [ezgif](http://ezgif.com/resize).
 
 ## Notes
 
