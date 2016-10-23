@@ -49,12 +49,13 @@ The following **additional** features are implemented:
 
 Here's a walkthrough of implemented user stories:
 
+
 <img src='http://i.imgur.com/3wpIaZs.gif' title='Video Walkthrough' width='' alt='Video Walkthrough' />
-See: http://imgur.com/a/3RABD
-
-
 <img src='http://i.imgur.com/fxkXKm2.gif' title='Video Walkthrough' width='' alt='Video Walkthrough' />
-See: http://imgur.com/a/uOBcO
+
+On imgur:
+* http://imgur.com/a/3RABD
+* http://imgur.com/a/uOBcO
 
 GIF created with [LiceCap](http://www.cockos.com/licecap/).
 Resized to 70% and optimized for github 5mb restrictions with [ezgif](http://ezgif.com/resize).
