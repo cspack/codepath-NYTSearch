@@ -3,7 +3,7 @@
     <!-- Base application theme. -->
     <style name="AppTheme" parent="Theme.AppCompat.Light.NoActionBar">
         <!-- Customize your theme here. -->
-        <item name="colorPrimary">#ffffff</item>
+        <item name="colorPrimary">#fefede</item>
         <item name="colorPrimaryDark">#000000</item>
         <item name="colorAccent">#5F0000</item>
         <item name="android:textViewStyle">@style/AppTheme.Widget.TextView</item>

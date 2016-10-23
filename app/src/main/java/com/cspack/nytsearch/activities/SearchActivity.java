@@ -44,6 +44,7 @@ public class SearchActivity
 
     private ActivitySearchBinding binding;
     private FilterConfig filterConfig;
+    private EndlessScrollListener scrollListener;
 
     private List<Doc> docs;
     private ArticleSearch result;
@@ -62,6 +63,8 @@ public class SearchActivity
         docs = new ArrayList<>();
         setupArticleView();
         filterConfig = new FilterConfig();
+        // Start unfiltered.
+        startArticleSearch(/*append=*/false);
     }
 
     @Override
@@ -89,6 +92,8 @@ public class SearchActivity
 
     public void startArticleSearch(final boolean append) {
         if (append == false) {
+            docs.clear();
+            binding.rvSearchResults.getAdapter().notifyDataSetChanged();
             // Reset page if not appending.
             filterConfig.setPage(0);
         }
@@ -99,8 +104,8 @@ public class SearchActivity
                                            Response<ArticleSearch> response) {
                         if (response.isSuccessful()) {
                             result = response.body();
-                            // erase if not appending.
                             if (append == false) {
+                                // in case of race condition.
                                 docs.clear();
                             }
                             docs.addAll(result.getResponse().getDocs());
@@ -115,22 +120,38 @@ public class SearchActivity
                 });
     }
 
+    public void resetScrollListener() {
+        // The endless scroll listener seems to glitch often. I don't know why we aren't using
+        // a cursor adapter of some form instead of a scrollview listener.
+        // Disabled my 'optimizations' for now because i think they make it worse.
+        if (scrollListener == null && binding.rvSearchResults.getLayoutManager() != null) {
+            /*
+            if (scrollListener != null) {
+                binding.rvSearchResults.removeOnScrollListener(scrollListener);
+            }
+            */
+            scrollListener = new EndlessScrollListener(
+                    (StaggeredGridLayoutManager) binding.rvSearchResults.getLayoutManager()) {
+                @Override
+                public void onLoadMore(int page, int totalItemsCount) {
+                    // limiting factors to control whether more data is available.
+                    if (totalItemsCount < (page * 10) || page >= 1000) {
+                        return;
+                    }
+                    filterConfig.setPage(page);
+                    startArticleSearch(/*append=*/true);
+                }
+            };
+            binding.rvSearchResults.addOnScrollListener(scrollListener);
+        }
+    }
+
     public void setupArticleView() {
         binding.rvSearchResults.setAdapter(new ArticleSearchAdapter(docs, cardClickListener));
         StaggeredGridLayoutManager layoutManager = new StaggeredGridLayoutManager(
                 isLandscape() ? 4 : 2, StaggeredGridLayoutManager.VERTICAL);
         binding.rvSearchResults.setLayoutManager(layoutManager);
-        binding.rvSearchResults.addOnScrollListener(new EndlessScrollListener(layoutManager) {
-            @Override
-            public void onLoadMore(int page, int totalItemsCount) {
-                // limiting factors to control whether more data is available.
-                if (totalItemsCount < (page * 10) || page >= 1000) {
-                    return;
-                }
-                filterConfig.setPage(page);
-                startArticleSearch(/*append=*/true);
-            }
-        });
+        resetScrollListener();
     }
 
     public ArticleSearchAdapter.OnArticleClickListener cardClickListener =
@@ -199,12 +220,14 @@ public class SearchActivity
 
                 @Override
                 public boolean onQueryTextChange(String newText) {
-                    // Handle empty text to clear query.
-                    if (newText.equals("")) {
-                        return this.onQueryTextSubmit(newText);
-                    }
                     return false;
                 }
+            });
+            searchView.setOnCloseListener(() -> {
+                // Erases search query, since on close the search gets lost anyway.
+                filterConfig.setQuery(null);
+                startArticleSearch(/*append=*/false);
+                return false;
             });
         }
         menu.findItem(R.id.action_filter).setOnMenuItemClickListener(

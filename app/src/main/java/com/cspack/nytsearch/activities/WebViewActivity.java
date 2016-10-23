@@ -2,6 +2,7 @@ package com.cspack.nytsearch.activities;
 
 import android.annotation.TargetApi;
 import android.content.Intent;
+import android.graphics.Bitmap;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
@@ -18,12 +19,14 @@ import android.view.View;
 import android.webkit.WebResourceRequest;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+import android.widget.ProgressBar;
 
 import com.cspack.nytsearch.R;
 
 public class WebViewActivity extends AppCompatActivity {
     private static final String TAG = WebViewActivity.class.getSimpleName();
     private WebView myWebView;
+    private MenuItem miProgress;
     private Intent shareIntent;
     private String title;
     private String url;
@@ -72,6 +75,19 @@ public class WebViewActivity extends AppCompatActivity {
             view.loadUrl(request.getUrl().toString());
             return true;
         }
+
+        @Override
+        public void onPageStarted(WebView view, String url, Bitmap favicon) {
+            if (miProgress != null) miProgress.setVisible(true);
+        }
+
+
+        @Override
+        public void onPageFinished(WebView view, String url) {
+            // Only keep loading around for initial page load.
+            if (miProgress != null) miProgress.setVisible(false);
+            super.onPageFinished(view, url);
+        }
     }
     private void prepareShareIntent() {
         String shareText = "Check out \"" + title + "\" at " + url;
@@ -88,6 +104,8 @@ public class WebViewActivity extends AppCompatActivity {
         MenuItem item = menu.findItem(R.id.action_share);
         ShareActionProvider miShare = (ShareActionProvider) MenuItemCompat.getActionProvider(item);
         miShare.setShareIntent(shareIntent);
+
+        miProgress = menu.findItem(R.id.action_progress);
         return super.onCreateOptionsMenu(menu);
     }
 }
