@@ -1,13 +1,18 @@
 
 package com.cspack.nytsearch.models.articlesearch;
 
+import android.os.Parcelable;
+
 import java.util.ArrayList;
 import java.util.List;
 import javax.annotation.Generated;
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 
+import org.parceler.Parcel;
+
 @Generated("org.jsonschema2pojo")
+@Parcel
 public class Doc {
 
     @SerializedName("web_url")
@@ -19,12 +24,6 @@ public class Doc {
     @SerializedName("lead_paragraph")
     @Expose
     private String leadParagraph;
-    @SerializedName("abstract")
-    @Expose
-    private Object _abstract;
-    @SerializedName("print_page")
-    @Expose
-    private Object printPage;
     @SerializedName("blog")
     @Expose
     private List<String> blog = new ArrayList<String>();
@@ -37,9 +36,6 @@ public class Doc {
     @SerializedName("headline")
     @Expose
     private Headline headline;
-    @SerializedName("keywords")
-    @Expose
-    private List<Object> keywords = new ArrayList<Object>();
     @SerializedName("pub_date")
     @Expose
     private String pubDate;
@@ -64,12 +60,6 @@ public class Doc {
     @SerializedName("_id")
     @Expose
     private String id;
-    @SerializedName("word_count")
-    @Expose
-    private Object wordCount;
-    @SerializedName("slideshow_credits")
-    @Expose
-    private Object slideshowCredits;
 
     /**
      * 
@@ -137,52 +127,6 @@ public class Doc {
 
     public Doc withLeadParagraph(String leadParagraph) {
         this.leadParagraph = leadParagraph;
-        return this;
-    }
-
-    /**
-     * 
-     * @return
-     *     The _abstract
-     */
-    public Object getAbstract() {
-        return _abstract;
-    }
-
-    /**
-     * 
-     * @param _abstract
-     *     The abstract
-     */
-    public void setAbstract(Object _abstract) {
-        this._abstract = _abstract;
-    }
-
-    public Doc withAbstract(Object _abstract) {
-        this._abstract = _abstract;
-        return this;
-    }
-
-    /**
-     * 
-     * @return
-     *     The printPage
-     */
-    public Object getPrintPage() {
-        return printPage;
-    }
-
-    /**
-     * 
-     * @param printPage
-     *     The print_page
-     */
-    public void setPrintPage(Object printPage) {
-        this.printPage = printPage;
-    }
-
-    public Doc withPrintPage(Object printPage) {
-        this.printPage = printPage;
         return this;
     }
 
@@ -275,29 +219,6 @@ public class Doc {
 
     public Doc withHeadline(Headline headline) {
         this.headline = headline;
-        return this;
-    }
-
-    /**
-     * 
-     * @return
-     *     The keywords
-     */
-    public List<Object> getKeywords() {
-        return keywords;
-    }
-
-    /**
-     * 
-     * @param keywords
-     *     The keywords
-     */
-    public void setKeywords(List<Object> keywords) {
-        this.keywords = keywords;
-    }
-
-    public Doc withKeywords(List<Object> keywords) {
-        this.keywords = keywords;
         return this;
     }
 
@@ -484,51 +405,4 @@ public class Doc {
         this.id = id;
         return this;
     }
-
-    /**
-     * 
-     * @return
-     *     The wordCount
-     */
-    public Object getWordCount() {
-        return wordCount;
-    }
-
-    /**
-     * 
-     * @param wordCount
-     *     The word_count
-     */
-    public void setWordCount(Object wordCount) {
-        this.wordCount = wordCount;
-    }
-
-    public Doc withWordCount(Object wordCount) {
-        this.wordCount = wordCount;
-        return this;
-    }
-
-    /**
-     * 
-     * @return
-     *     The slideshowCredits
-     */
-    public Object getSlideshowCredits() {
-        return slideshowCredits;
-    }
-
-    /**
-     * 
-     * @param slideshowCredits
-     *     The slideshow_credits
-     */
-    public void setSlideshowCredits(Object slideshowCredits) {
-        this.slideshowCredits = slideshowCredits;
-    }
-
-    public Doc withSlideshowCredits(Object slideshowCredits) {
-        this.slideshowCredits = slideshowCredits;
-        return this;
-    }
-
 }

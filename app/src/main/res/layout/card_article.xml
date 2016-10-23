@@ -5,9 +5,13 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <data>
         <import type="com.cspack.nytsearch.models.articlesearch.Doc" />
+        <import type="com.cspack.nytsearch.models.articlesearch.Multimedia" />
         <variable
             name="doc"
             type="Doc" />
+        <variable
+            name="media"
+            type="Multimedia" />
     </data>
     <android.support.v7.widget.CardView
         android:id="@+id/card"
@@ -32,8 +36,6 @@
                 android:layout_alignParentTop="true"
                 android:adjustViewBounds="true"
                 android:minHeight="100dp"
-                android:scaleType="fitCenter"
-                app:multimedia="@{doc.multimedia}"
                 tools:src="@drawable/ic_filter_black_24dp" />
             <TextView
                 android:id="@+id/tvTitle"
@@ -50,6 +52,7 @@
                 android:textColor="@color/textColorSecondary"
                 android:textStyle="normal|bold"
                 android:text="@{doc.headline.main}"
+                android:textSize="@dimen/cardTextSize"
                 tools:text="Article Title" />
         </RelativeLayout>
     </android.support.v7.widget.CardView>

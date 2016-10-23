@@ -1,12 +1,15 @@
 package com.cspack.nytsearch.network;
 
-import android.util.Log;
-
+import com.cspack.nytsearch.models.FilterConfig;
 import com.cspack.nytsearch.models.articlesearch.ArticleSearch;
 import com.cspack.nytsearch.models.articlesearch.Byline;
 import com.cspack.nytsearch.models.articlesearch.BylineDeserializer;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.List;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -42,7 +45,28 @@ public class NewYorkTimesClient {
                 @Query("page") Integer page);
     }
 
-    public static void MakeArticleSearch(Callback<ArticleSearch> callback) {
+    private static String buildFilterQuery(List<String> newsDeskFilters) {
+        if (newsDeskFilters == null || newsDeskFilters.size() == 0) {
+            return null;
+        }
+        StringBuilder concatFilters = new StringBuilder();
+        for (String filter : newsDeskFilters) {
+            concatFilters.append("\"");
+            concatFilters.append(filter);
+            concatFilters.append("\" ");
+        }
+        return String.format("news_desk:(%s)", concatFilters.toString());
+    }
+
+    private static String parseDateMicro(long micro) {
+        if (micro <= 0) {
+            return null;
+        }
+        final SimpleDateFormat formatter = new SimpleDateFormat("yyyyMMdd");
+        return formatter.format(new Date(micro));
+    }
+
+    public static void MakeArticleSearch(FilterConfig config, Callback<ArticleSearch> callback) {
         Gson gson = new GsonBuilder().registerTypeAdapter(
                 Byline.class, new BylineDeserializer()).create();
         Retrofit retrofit = new Retrofit.Builder()
@@ -51,7 +75,9 @@ public class NewYorkTimesClient {
                 .build();
         ArticleSearchInterface searchInterface = retrofit.create(ArticleSearchInterface.class);
         Call<ArticleSearch> search = searchInterface.articleSearch(
-                API_KEY, "android", null, "newest", null, null, 0);
+                API_KEY, config.getQuery(), buildFilterQuery(config.getNewsDeskFilters()),
+                config.getSortOrder(), parseDateMicro(config.getBeginDateMicros()),
+                parseDateMicro(config.getEndDateMicros()), config.getPage());
         search.enqueue(callback);
     }
 }

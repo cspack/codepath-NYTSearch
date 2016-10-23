@@ -1,33 +1,31 @@
 package com.cspack.nytsearch.activities;
 
-import android.app.DatePickerDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.Configuration;
 import android.databinding.DataBindingUtil;
 import android.net.Uri;
-import android.support.design.widget.Snackbar;
-import android.support.v4.view.MenuItemCompat;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.support.v7.widget.RecyclerView;
+import android.os.Parcelable;
+import android.support.design.widget.Snackbar;
+import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.SearchView;
 import android.support.v7.widget.StaggeredGridLayoutManager;
 import android.view.Menu;
-import android.view.MenuItem;
-import android.view.MotionEvent;
-import android.view.View;
-import android.widget.DatePicker;
-import android.widget.Toast;
 
-import com.cspack.nytsearch.DatePickerFragment;
 import com.cspack.nytsearch.R;
 import com.cspack.nytsearch.adapters.ArticleSearchAdapter;
 import com.cspack.nytsearch.databinding.ActivitySearchBinding;
+import com.cspack.nytsearch.fragments.ArticleFilterFragment;
+import com.cspack.nytsearch.models.FilterConfig;
 import com.cspack.nytsearch.models.articlesearch.ArticleSearch;
 import com.cspack.nytsearch.models.articlesearch.Doc;
 import com.cspack.nytsearch.network.NewYorkTimesClient;
+import com.cspack.nytsearch.util.EndlessScrollListener;
 
+import org.parceler.Parcels;
+
+import java.util.ArrayList;
 import java.util.List;
 
 import retrofit2.Call;
@@ -35,47 +33,112 @@ import retrofit2.Callback;
 import retrofit2.Response;
 import uk.co.chrisjenx.calligraphy.CalligraphyContextWrapper;
 
-public class SearchActivity extends AppCompatActivity implements DatePickerDialog.OnDateSetListener {
+public class SearchActivity
+        extends AppCompatActivity
+        implements ArticleFilterFragment.OnFragmentInteractionListener {
+    @Override
+    public void onFilterChanged(FilterConfig config) {
+        this.filterConfig = config;
+        startArticleSearch(/*append=*/false);
+    }
+
     private ActivitySearchBinding binding;
+    private FilterConfig filterConfig;
 
     private List<Doc> docs;
+    private ArticleSearch result;
+    private Snackbar errorSnackbar;
+    private SearchView searchView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         binding = DataBindingUtil.setContentView(this, R.layout.activity_search);
         setSupportActionBar(binding.tbMain);
+        getSupportActionBar().setHomeButtonEnabled(true);
+        getSupportActionBar().setDisplayShowHomeEnabled(true);
+        getSupportActionBar().setLogo(R.mipmap.ic_launcher);
 
-        NewYorkTimesClient.MakeArticleSearch(new Callback<ArticleSearch>() {
-            @Override
-            public void onResponse(Call<ArticleSearch> call, Response<ArticleSearch> response) {
-                if (response.isSuccessful()) {
-                    docs = response.body().getResponse().getDocs();
-                    setupArticleView();
-                }
-            }
+        docs = new ArrayList<>();
+        setupArticleView();
+        filterConfig = new FilterConfig();
+    }
 
-            @Override
-            public void onFailure(Call<ArticleSearch> call, Throwable t) {
-                showErrorSnackbar();
-            }
-        });
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        // Backup search result.
+        outState.putParcelable("result", Parcels.wrap(result));
+        outState.putParcelable("filterConfig", Parcels.wrap(filterConfig));
+    }
+
+    @Override
+    protected void onRestoreInstanceState(Bundle savedInstanceState) {
+        // Restore search result.
+        Parcelable result = savedInstanceState.getParcelable("result");
+        if (result != null) {
+            this.result = Parcels.unwrap(result);
+            docs.clear();
+            docs.addAll(this.result.getResponse().getDocs());
+            binding.rvSearchResults.getAdapter().notifyDataSetChanged();
+        }
+        Parcelable config = savedInstanceState.getParcelable("filterConfig");
+        if (config != null) {
+            this.filterConfig = Parcels.unwrap(config);
+        }
+    }
+
+    public void startArticleSearch(final boolean append) {
+        if (append == false) {
+            // Reset page if not appending.
+            filterConfig.setPage(0);
+        }
+        NewYorkTimesClient.MakeArticleSearch(filterConfig,
+                new Callback<ArticleSearch>() {
+                    @Override
+                    public void onResponse(Call<ArticleSearch> call,
+                                           Response<ArticleSearch> response) {
+                        if (response.isSuccessful()) {
+                            result = response.body();
+                            // erase if not appending.
+                            if (append == false) {
+                                docs.clear();
+                            }
+                            docs.addAll(result.getResponse().getDocs());
+                            binding.rvSearchResults.getAdapter().notifyDataSetChanged();
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(Call<ArticleSearch> call, Throwable t) {
+                        showErrorSnackbar(SnackbarErrorType.NETWORK);
+                    }
+                });
     }
 
     public void setupArticleView() {
         binding.rvSearchResults.setAdapter(new ArticleSearchAdapter(docs, cardClickListener));
-        binding.rvSearchResults.setLayoutManager(new StaggeredGridLayoutManager(
-                isLandscape() ? 4 : 2, StaggeredGridLayoutManager.VERTICAL));
-        binding.rvSearchResults.setHasFixedSize(true);
+        StaggeredGridLayoutManager layoutManager = new StaggeredGridLayoutManager(
+                isLandscape() ? 4 : 2, StaggeredGridLayoutManager.VERTICAL);
+        binding.rvSearchResults.setLayoutManager(layoutManager);
+        binding.rvSearchResults.addOnScrollListener(new EndlessScrollListener(layoutManager) {
+            @Override
+            public void onLoadMore(int page, int totalItemsCount) {
+                // limiting factors to control whether more data is available.
+                if (totalItemsCount < (page * 10) || page >= 1000) {
+                    return;
+                }
+                filterConfig.setPage(page);
+                startArticleSearch(/*append=*/true);
+            }
+        });
     }
 
     public ArticleSearchAdapter.OnArticleClickListener cardClickListener =
-            new ArticleSearchAdapter.OnArticleClickListener() {
-                @Override
-                public void OnClick(Doc article) {
-                    Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(article.getWebUrl()));
-                    startActivity(intent);
-                }
+            article -> {
+                Intent intent = new Intent(this, WebViewActivity.class);
+                intent.putExtra("url", article.getWebUrl());
+                intent.putExtra("title", article.getHeadline().getMain());
+                startActivity(intent);
             };
 
     @Override
@@ -87,27 +150,48 @@ public class SearchActivity extends AppCompatActivity implements DatePickerDialo
         return getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE;
     }
 
-    public void showErrorSnackbar() {
-        Snackbar.make(findViewById(R.id.mainLayout), R.string.snackbar_network,
+    public enum SnackbarErrorType {
+        NETWORK,
+        INTERNAL
+    }
+
+    public void showErrorSnackbar(SnackbarErrorType errorType) {
+        // don't show again if already showing.
+        if (errorSnackbar != null && errorSnackbar.isShownOrQueued()) {
+            return;
+        }
+
+        int snackbarStrResId = R.string.snackbar_network;
+        switch (errorType) {
+            case INTERNAL:
+                snackbarStrResId = R.string.snackbar_internal;
+                break;
+            case NETWORK:
+                snackbarStrResId = R.string.snackbar_network;
+                break;
+        }
+        errorSnackbar = Snackbar.make(findViewById(R.id.mainLayout),
+                snackbarStrResId,
                 Snackbar.LENGTH_INDEFINITE)
-                .setAction(R.string.snackbar_retry, new View.OnClickListener() {
-                    @Override
-                public void onClick(View v) {
-                    Toast.makeText(SearchActivity.this, "hello", Toast.LENGTH_SHORT).show();
-                    }
-                })
-                .show(); // Don’t forget to show!
+                .setAction(R.string.snackbar_retry, v -> startArticleSearch(/*append=*/false));
+        errorSnackbar.show(); // Don’t forget to show!
     }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.menu_main, menu);
-        final SearchView searchView = (SearchView) menu.findItem(R.id.action_search).getActionView();
+        searchView = (SearchView) menu.findItem(R.id.action_search).getActionView();
         if (searchView != null) {
             searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
                 @Override
                 public boolean onQueryTextSubmit(String query) {
-                    Toast.makeText(SearchActivity.this, query, Toast.LENGTH_SHORT).show();
+                    if (query.equals("")) {
+                        // Erase query restriction.
+                        filterConfig.setQuery(null);
+                    } else {
+                        filterConfig.setQuery(query);
+                    }
+                    startArticleSearch(/*append=*/false);
                     // Closes the keyboard, very helpful in landscape mode.
                     searchView.clearFocus();
                     return true;
@@ -115,25 +199,21 @@ public class SearchActivity extends AppCompatActivity implements DatePickerDialo
 
                 @Override
                 public boolean onQueryTextChange(String newText) {
+                    // Handle empty text to clear query.
+                    if (newText.equals("")) {
+                        return this.onQueryTextSubmit(newText);
+                    }
                     return false;
                 }
             });
         }
-        MenuItem filter = menu.findItem(R.id.action_filter).setOnMenuItemClickListener(
-                new MenuItem.OnMenuItemClickListener() {
-            @Override
-            public boolean onMenuItemClick(MenuItem item) {
-                DatePickerFragment fragment = new DatePickerFragment();
-                fragment.show(getSupportFragmentManager(), "date");
-                return true;
-            }
-        });
-
+        menu.findItem(R.id.action_filter).setOnMenuItemClickListener(
+                item -> {
+                    ArticleFilterFragment fragment = ArticleFilterFragment.newInstance(
+                            filterConfig);
+                    fragment.show(getSupportFragmentManager(), "FilterFragment");
+                    return true;
+                });
         return true;
-    }
-
-    @Override
-    public void onDateSet(DatePicker view, int year, int month, int dayOfMonth) {
-        Toast.makeText(this, "lol date set", Toast.LENGTH_SHORT).show();
     }
 }

@@ -3,14 +3,20 @@
     <!-- Base application theme. -->
     <style name="AppTheme" parent="Theme.AppCompat.Light.NoActionBar">
         <!-- Customize your theme here. -->
-        <item name="colorPrimary">#8e7350</item>
-        <item name="colorPrimaryDark">#582000</item>
-        <item name="colorAccent">#ffcc00</item>
+        <item name="colorPrimary">#ffffff</item>
+        <item name="colorPrimaryDark">#000000</item>
+        <item name="colorAccent">#5F0000</item>
         <item name="android:textViewStyle">@style/AppTheme.Widget.TextView</item>
     </style>
-    <style name="AppTheme.Widget"/>
+
+    <style name="AppTheme.Widget" />
+
     <style name="AppTheme.Widget.TextView" parent="android:Widget.Holo.Light.TextView">
-        <item name="fontPath">fonts/Shanti-Regular.ttf</item>
+        <item name="fontPath">fonts/RobotoCondensed-Regular.ttf</item>
     </style>
+
+    <style name="AppTheme.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar" />
+
+    <style name="AppTheme.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
 
 </resources>

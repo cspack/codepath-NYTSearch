@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="cardBackground">#003333</color>
-    <color name="cardLabelBackground">#baffffff</color>
+    <color name="cardBackground">#fff7e7</color>
+    <color name="cardLabelBackground">#00000000</color>
     <color name="colorPrimary">#3F51B5</color>
     <color name="colorPrimaryDark">#303F9F</color>
     <color name="colorAccent">#FF4081</color>
-    <color name="textColorSecondary">#036</color>
+    <color name="listBackground">#7b2744</color>
+    <color name="textColorSecondary">#222222</color>
 </resources>

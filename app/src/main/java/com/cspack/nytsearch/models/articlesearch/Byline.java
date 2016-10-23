@@ -17,7 +17,10 @@ import com.google.gson.JsonSyntaxException;
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 
+import org.parceler.Parcel;
+
 @Generated("org.jsonschema2pojo")
+@Parcel
 public class Byline {
 
     @SerializedName("person")
